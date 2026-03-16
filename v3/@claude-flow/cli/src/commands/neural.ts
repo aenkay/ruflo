@@ -1583,19 +1583,36 @@ const benchmarkCommand: Command = {
       const results: { name: string; averageTimeMs: number; opsPerSecond: number }[] = [];
 
       // Benchmark each mechanism
-      const dotProduct = new attention.DotProductAttention(dim);
+      // Helper to safely instantiate attention mechanisms (may be constructors or factory functions)
+      function createAttention(ctor: any, ...args: any[]): any {
+        try {
+          if (typeof ctor === 'function' && ctor.prototype && ctor.prototype.constructor === ctor) {
+            return new ctor(...args);
+          }
+          return ctor(...args);
+        } catch {
+          // Fallback: try the opposite approach
+          try {
+            return ctor(...args);
+          } catch {
+            return new ctor(...args);
+          }
+        }
+      }
+
+      const dotProduct = createAttention(attention.DotProductAttention, dim);
       results.push(await benchmarkMechanism('DotProduct', dotProduct));
 
-      const flash = new attention.FlashAttention(dim, 64);
+      const flash = createAttention(attention.FlashAttention, dim, 64);
       results.push(await benchmarkMechanism('FlashAttention', flash));
 
-      const multiHead = new attention.MultiHeadAttention(dim, 4);
+      const multiHead = createAttention(attention.MultiHeadAttention, dim, 4);
       results.push(await benchmarkMechanism('MultiHead (4 heads)', multiHead));
 
-      const hyperbolic = new attention.HyperbolicAttention(dim, 1.0);
+      const hyperbolic = createAttention(attention.HyperbolicAttention, dim, 1.0);
       results.push(await benchmarkMechanism('Hyperbolic', hyperbolic));
 
-      const linear = new attention.LinearAttention(dim, dim);
+      const linear = createAttention(attention.LinearAttention, dim, dim);
       results.push(await benchmarkMechanism('Linear', linear));
 
       spinner.succeed('Benchmark complete');

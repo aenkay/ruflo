@@ -494,7 +494,8 @@ export class QLearningRouter {
     let targetQ: number;
     if (nextStateKey) {
       const nextQValues = this.getQValues(nextStateKey);
-      const maxNextQ = Math.max(...nextQValues);
+      const finiteValues = nextQValues.filter(v => isFinite(v));
+      const maxNextQ = finiteValues.length > 0 ? Math.max(...finiteValues) : 0;
       targetQ = reward + this.config.gamma * maxNextQ;
     } else {
       // Terminal state

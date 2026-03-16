@@ -416,8 +416,17 @@ const feedbackCommand: Command = {
   action: async (ctx: CommandContext): Promise<CommandResult> => {
     const taskDescription = ctx.flags.task as string;
     const agentId = ctx.flags.agent as string;
-    const reward = ctx.flags.reward as number;
+    let reward = ctx.flags.reward as number;
     const nextTask = ctx.flags['next-task'] as string | undefined;
+    const success = ctx.flags.success as boolean | undefined;
+
+    // Map --success flag to reward if --reward not provided
+    if ((reward === undefined || reward === null || isNaN(reward)) && success !== undefined) {
+      reward = success ? 1.0 : -1.0;
+    }
+    if (reward === undefined || reward === null || isNaN(reward)) {
+      reward = 0;
+    }
 
     if (!taskDescription || !agentId) {
       output.printError('Task description and agent are required');

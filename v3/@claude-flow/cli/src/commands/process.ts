@@ -218,8 +218,8 @@ const monitorCommand: Command = {
       name: 'format',
       type: 'string',
       description: 'Output format',
-      choices: ['dashboard', 'compact', 'json'],
-      default: 'dashboard',
+      choices: ['text', 'json', 'table', 'dashboard', 'compact'],
+      default: 'text',
     },
     {
       name: 'components',
@@ -290,6 +290,35 @@ const monitorCommand: Command = {
 
     if (format === 'json') {
       console.log(JSON.stringify(metrics, null, 2));
+      return { success: true, data: metrics };
+    }
+
+    if (format === 'text') {
+      console.log('\nProcess Monitor\n');
+      console.log(`System: CPU ${metrics.system.cpuUsage.toFixed(1)}%, Memory ${metrics.system.memoryUsed}MB/${metrics.system.memoryTotal}MB`);
+      console.log(`Agents: ${metrics.agents.active} active, ${metrics.agents.idle} idle (${metrics.agents.total} total, pool ${metrics.agents.poolSize})`);
+      console.log(`Tasks:  ${metrics.tasks.running} running, ${metrics.tasks.queued} queued, ${metrics.tasks.completed} completed, ${metrics.tasks.failed} failed`);
+      console.log(`Memory: ${metrics.memory.vectorCount} vectors, ${metrics.memory.indexSize}MB index, ${(metrics.memory.cacheHitRate * 100).toFixed(1)}% cache hit rate`);
+      console.log(`Network: ${metrics.network.mcpConnections} MCP connections, ${metrics.network.requestsPerMin} req/min, ${metrics.network.avgLatency.toFixed(1)}ms avg latency`);
+      return { success: true, data: metrics };
+    }
+
+    if (format === 'table') {
+      console.log('\nProcess Monitor\n');
+      console.log('Component      Metric              Value');
+      console.log('-------------- -------------------- --------------------');
+      console.log(`System         CPU Usage            ${metrics.system.cpuUsage.toFixed(1)}%`);
+      console.log(`System         Memory               ${metrics.system.memoryUsed}MB / ${metrics.system.memoryTotal}MB`);
+      console.log(`Agents         Active / Total       ${metrics.agents.active} / ${metrics.agents.total}`);
+      console.log(`Agents         Pool Size            ${metrics.agents.poolSize}`);
+      console.log(`Tasks          Running              ${metrics.tasks.running}`);
+      console.log(`Tasks          Queued               ${metrics.tasks.queued}`);
+      console.log(`Tasks          Completed            ${metrics.tasks.completed}`);
+      console.log(`Tasks          Failed               ${metrics.tasks.failed}`);
+      console.log(`Memory         Vectors              ${metrics.memory.vectorCount}`);
+      console.log(`Memory         Cache Hit Rate       ${(metrics.memory.cacheHitRate * 100).toFixed(1)}%`);
+      console.log(`Network        MCP Connections      ${metrics.network.mcpConnections}`);
+      console.log(`Network        Avg Latency          ${metrics.network.avgLatency.toFixed(1)}ms`);
       return { success: true, data: metrics };
     }
 

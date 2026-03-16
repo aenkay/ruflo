@@ -12,7 +12,9 @@ import * as path from 'path';
 
 // Format date for display
 function formatDate(dateStr: string): string {
+  if (!dateStr) return 'N/A';
   const date = new Date(dateStr);
+  if (isNaN(date.getTime())) return 'N/A';
   const now = new Date();
   const diff = now.getTime() - date.getTime();
 
@@ -121,7 +123,7 @@ const listCommand: Command = {
           { key: 'updated', header: 'Last Updated', width: 18 }
         ],
         data: result.sessions.map(s => ({
-          id: s.id,
+          id: s.id || 'unknown',
           name: s.name || '-',
           status: formatStatus(s.status),
           agents: s.agentCount,
